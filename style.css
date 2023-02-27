@@ -1,0 +1,31 @@
+body {
+    font-family: Arial;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex-basis: auto;
+  justify-content: space-between;
+  align-self: flex-start;
+}
+
+.left-col {
+  width: 33%;
+  padding: 20px;
+}
+
+.mid-col {
+  width: 33%;
+  padding: 20px;
+}
+
+.right-col {
+  width: 33%;
+  padding: 20px;
+}
