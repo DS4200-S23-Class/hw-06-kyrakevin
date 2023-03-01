@@ -15,17 +15,16 @@ h1, h2 {
   align-self: flex-start;
 }
 
-.left-col {
+.col {
   width: 33%;
   padding: 20px;
 }
 
-.mid-col {
-  width: 33%;
-  padding: 20px;
+.point, .bar {
+  opacity: 50%;
 }
 
-.right-col {
-  width: 33%;
-  padding: 20px;
+.highlighted {
+  opacity: 100% !important;
+  stroke: yellow;
 }
