@@ -17,11 +17,11 @@ function visLeft() {
   // LENGTH DATA
   d3.csv("data/iris.csv").then((data) => {
       const x_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Length);})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Length) + 1;})])
         .range([0, VIS_WIDTH])
 
       const y_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Length);})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Length) + 1;})])
         .range([VIS_HEIGHT, 0]);
 
     FRAME1.selectAll("circle")
@@ -32,10 +32,10 @@ function visLeft() {
             return MARGINS.left + x_scale(parseFloat(d.Sepal_Length));
           })
           .attr("cy", (d) => {
-            return MARGINS.left + y_scale(parseFloat(d.Petal_Length));
+            return y_scale(parseFloat(d.Petal_Length));
           })
           .attr("r", 5)
-          .attr("class", "point")
+          .attr("class", "point length")
           .attr("id", (d) => {
             return d.id;
           })
@@ -68,11 +68,11 @@ function visMid() {
   // WIDTH DATA
   d3.csv("data/iris.csv").then((data) => {
       const x_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Width);})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Width) + .5;})])
         .range([0, VIS_WIDTH])
 
       const y_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Width);})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Width) + .25;})])
         .range([VIS_HEIGHT, 0]);
 
     FRAME2.selectAll("circle")
@@ -80,13 +80,13 @@ function visMid() {
         .enter()
         .append("circle")
           .attr("cx", (d) => {
-            return MARGINS.left + x_scale(parseFloat(d.Petal_Width));
+            return MARGINS.left + x_scale(parseFloat(d.Sepal_Width));
           })
           .attr("cy", (d) => {
-            return MARGINS.left + y_scale(parseFloat(d.Sepal_Width));
+            return y_scale(parseFloat(d.Petal_Width));
           })
           .attr("r", 5)
-          .attr("class", "point")
+          .attr("class", "point width")
           .attr("id", (d) => {
             return d.id;
           })
@@ -97,7 +97,7 @@ function visMid() {
       // add axises/ticks
       FRAME2.append("g")
           .attr("transform", "translate("+ MARGINS.left +"," + VIS_HEIGHT + ")" )
-              .call(d3.axisBottom(x_scale).ticks(6))
+              .call(d3.axisBottom(x_scale).ticks(8))
               .attr("font-size", "15px");
 
       FRAME2.append("g")
@@ -105,13 +105,42 @@ function visMid() {
           .call(d3.axisLeft(y_scale))
           .attr("font-size", "15px");
 
-  });
+          // adds d3 brush tool
+  		FRAME2.call(d3.brush()
+  			.extent([[MARGINS.left, 0], [VIS_WIDTH+MARGINS.left, VIS_HEIGHT]])
+  			.on("start brush", brushed)
+  		);
 
-  // Add brushing and call the updateChart function
-		FRAME2.call(d3.brush()
-			.extent([[MARGINS.left, MARGINS.bottom], [VIS_WIDTH+MARGINS.left, VIS_HEIGHT+MARGINS.top]])
-			.on("start brush", brushed)
-		);
+      // determines which points are being selected and highlights same
+      // points on other charts
+      function brushed(event) {
+        const length_points = d3.selectAll('.length');
+        const width_points = d3.selectAll('.width');
+        const bars = d3.selectAll('.bar');
+
+        extent = event.selection;
+        width_points.classed("highlighted", function(d){
+        	return highlightP(extent,
+            x_scale(d.Sepal_Width) + MARGINS.left, y_scale(d.Petal_Width))
+        })
+        length_points.classed("highlighted", function(d){
+          return highlightP(extent,
+            x_scale(d.Sepal_Width) + MARGINS.left, y_scale(d.Petal_Width))
+        })
+        bars.classed("highlighted", function(d) {
+        	return highlightB(extent, d)
+        })
+      };
+
+      // determines if a point should be highlighted
+      function highlightP(extent, cx, cy) {
+  		    let left = extent[0][0] <= cx;
+  		    let right = extent[1][0] >= cx;
+  		    let top = extent[0][1] <= cy;
+  		    let bottom = extent[1][1] >= cy;
+  		    return left && right && top && bottom;
+  		};
+  });
 }
 
 function visRight() {
@@ -174,18 +203,9 @@ function pickColor(species) {
     default :
       console.log('Unidentified species: ' + species)
   }
-
-  function brushed({selection}) {
-  if(selection) {
-    const [[x0, y0], [x1, y1]] = selection;
-    extent = d3.extent([[MARGINS.left, MARGINS.bottom], [VIS_WIDTH + MARGINS.left, VIS_HEIGHT + MARGINS.top]]);
-    console.log(extent);
-    console.log(d3.select(this));
-    d3.select(this)
-            .filter(d => x0 <= extent && extent < x1 && y0 <= extent && y(d.y) < extent)
-            .classed("highlight");
-  }
 }
+
+
 
 visLeft();
 visRight();
