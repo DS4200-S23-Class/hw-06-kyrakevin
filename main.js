@@ -17,11 +17,11 @@ function visLeft() {
   // LENGTH DATA
   d3.csv("data/iris.csv").then((data) => {
       const x_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Length) * 1.2;})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Length);})])
         .range([0, VIS_WIDTH])
 
       const y_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Length) * 1.2;})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Length);})])
         .range([VIS_HEIGHT, 0]);
 
     FRAME1.selectAll("circle")
@@ -29,10 +29,10 @@ function visLeft() {
         .enter()
         .append("circle")
           .attr("cx", (d) => {
-            return MARGINS.left + x_scale(parseFloat(d.Petal_Length));
+            return MARGINS.left + x_scale(parseFloat(d.Sepal_Length));
           })
           .attr("cy", (d) => {
-            return MARGINS.left + y_scale(parseFloat(d.Sepal_Length));
+            return MARGINS.left + y_scale(parseFloat(d.Petal_Length));
           })
           .attr("r", 5)
           .attr("class", "point")
@@ -68,11 +68,11 @@ function visMid() {
   // WIDTH DATA
   d3.csv("data/iris.csv").then((data) => {
       const x_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Width) * 1.2;})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Width);})])
         .range([0, VIS_WIDTH])
 
       const y_scale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => {return parseFloat(d.Sepal_Width) * 1.2;})])
+        .domain([0, d3.max(data, d => {return parseFloat(d.Petal_Width);})])
         .range([VIS_HEIGHT, 0]);
 
     FRAME2.selectAll("circle")
@@ -110,7 +110,7 @@ function visMid() {
   // Add brushing and call the updateChart function
 		FRAME2.call(d3.brush()
 			.extent([[MARGINS.left, MARGINS.bottom], [VIS_WIDTH+MARGINS.left, VIS_HEIGHT+MARGINS.top]])
-			.on("start brush", highlightPoints)
+			.on("start brush", brushed)
 		);
 }
 
@@ -173,6 +173,17 @@ function pickColor(species) {
       break;
     default :
       console.log('Unidentified species: ' + species)
+  }
+
+  function brushed({selection}) {
+  if(selection) {
+    const [[x0, y0], [x1, y1]] = selection;
+    extent = d3.extent([[MARGINS.left, MARGINS.bottom], [VIS_WIDTH + MARGINS.left, VIS_HEIGHT + MARGINS.top]]);
+    console.log(extent);
+    console.log(d3.select(this));
+    d3.select(this)
+            .filter(d => x0 <= extent && extent < x1 && y0 <= extent && y(d.y) < extent)
+            .classed("highlight");
   }
 }
 
