@@ -5,6 +5,7 @@ const MARGINS = {left: 40, right: 40, top: 40, bottom: 40};
 
 const VIS_HEIGHT = FRAME_HEIGHT - MARGINS.top - MARGINS.bottom;
 const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right;
+let selectedSpecies = [];
 
 function visLeft() {
   // adding frame for the first viz
@@ -120,30 +121,39 @@ function visMid() {
 
         extent = event.selection;
         width_points.classed("highlighted", function(d){
-        	return highlightP(extent,
+        	return highlight(extent,
             x_scale(d.Sepal_Width) + MARGINS.left, y_scale(d.Petal_Width))
         })
         length_points.classed("highlighted", function(d){
-          return highlightP(extent,
+          return highlight(extent,
             x_scale(d.Sepal_Width) + MARGINS.left, y_scale(d.Petal_Width))
         })
-        bars.classed("highlighted", function(d) {
-        	return highlightB(extent, d)
-        })
-      };
+          bars.classed("highlighted", function(d) {
+          return highlight(extent,
+            x_scale(d.Sepal_Width) + MARGINS.left, y_scale(d.Petal_Width))
+        }) 
+        };
 
       // determines if a point should be highlighted
-      function highlightP(extent, cx, cy) {
+      function highlight(extent, cx, cy) {
   		    let left = extent[0][0] <= cx;
   		    let right = extent[1][0] >= cx;
   		    let top = extent[0][1] <= cy;
   		    let bottom = extent[1][1] >= cy;
-  		    return left && right && top && bottom;
+          return left && right && top && bottom;
   		};
   });
 }
 
 function visRight() {
+    d3.csv("data/iris.csv").then((data) => {
+      const x_scale = d3.scaleBand()
+        .domain(data.map(function (d) {return d.Species;}))
+        .range([0, VIS_WIDTH])
+
+      const y_scale = d3.scaleLinear()
+        .domain([0, 60])
+        .range([VIS_HEIGHT, 0]);
   // adding frame for the first viz
   const FRAME3 = d3.select("#right")
                   .append("svg")
@@ -151,42 +161,32 @@ function visRight() {
                       .attr("width", FRAME_WIDTH)
                       .attr("class", "frame");
 
-
-  species = ['setosa', 'versicolor', 'virginica']
-
-  const x = d3.scaleBand()
-    .range([0, VIS_WIDTH])
-    .domain(species.map(d => d))
-    .padding(0.2);
-
-  const y = d3.scaleLinear()
-    .domain([0, 54])
-    .range([VIS_HEIGHT, 0]);
+  const BAR_WIDTH = 60;
 
   FRAME3.selectAll("bars")
-    .data(species)
+    .data(data)
     .enter()
     .append("rect")
-      .attr("x", (d) => { return MARGINS.left + x(d); })
-      .attr("y", y(50))
-      .attr("width", x.bandwidth())
-      .attr("height", function(d) { return VIS_HEIGHT - y(50); })
+      .attr("x", (d) => {return 1.5 * MARGINS.left + x_scale(d.Species); })
+      .attr("y", y_scale(50))
+      .attr("width", BAR_WIDTH)
+      .attr("height", function(d) { return VIS_HEIGHT - y_scale(50); })
       .attr("class", "bar")
       .attr("fill", (d) => {
-        return pickColor(d);
+        return pickColor(d.Species);
       });
 
     // add axises/ticks
     FRAME3.append("g")
           .attr("transform", "translate("+ MARGINS.left +"," + VIS_HEIGHT + ")" )
-            .call(d3.axisBottom(x))
+            .call(d3.axisBottom(x_scale))
                 .attr("font-size", "15px");
 
     FRAME3.append("g")
           .attr("transform", "translate("+ MARGINS.left +",0)" )
-            .call(d3.axisLeft(y))
+            .call(d3.axisLeft(y_scale))
             .attr("font-size", "15px");
-
+});
 }
 
 function pickColor(species) {
@@ -204,7 +204,6 @@ function pickColor(species) {
       console.log('Unidentified species: ' + species)
   }
 }
-
 
 
 visLeft();
